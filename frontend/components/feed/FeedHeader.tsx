@@ -41,7 +41,7 @@ export default function FeedHeader({ user }: FeedHeaderProps) {
                 Upload
               </Button>
             </Link>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
+            <Button variant="destructive" size="sm" className="text-white" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
