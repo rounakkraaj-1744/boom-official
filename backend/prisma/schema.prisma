@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  email         String    @unique
+  password      String
+  walletBalance Int       @default(500)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  videos        Video[]
+  comments      Comment[]
+  purchases     Purchase[]
+  sentGifts     Gift[]    @relation("GiftSender")
+  receivedGifts Gift[]    @relation("GiftReceiver")
+
+  @@map("users")
+}
+
+model Video {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  type        VideoType
+  videoFile   String?   // For short-form videos (local file path)
+  videoUrl    String?   // For long-form videos (external URL)
+  price       Int       @default(0) // Price in rupees, 0 for free
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  creatorId String
+  creator   User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  purchases Purchase[]
+  gifts     Gift[]
+
+  @@map("videos")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId String
+  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Purchase {
+  id        String   @id @default(cuid())
+  amount    Int      // Amount paid
+  createdAt DateTime @default(now())
+
+  // Relations
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId String
+  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@map("purchases")
+}
+
+model Gift {
+  id        String   @id @default(cuid())
+  amount    Int      // Gift amount
+  createdAt DateTime @default(now())
+
+  // Relations
+  fromUserId String
+  fromUser   User   @relation("GiftSender", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User   @relation("GiftReceiver", fields: [toUserId], references: [id], onDelete: Cascade)
+  videoId    String
+  video      Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("gifts")
+}
+
+enum VideoType {
+  SHORT_FORM
+  LONG_FORM
+}

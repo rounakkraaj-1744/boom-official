@@ -1,0 +1,5 @@
+/node_modules
+# Keep environment variables out of version control
+.env
+
+# The uploads folder should not be sent to github but I uploading just for reference
